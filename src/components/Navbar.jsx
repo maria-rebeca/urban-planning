@@ -28,6 +28,7 @@ function Navbar() {
         <li><Link to="/simulator">Simulator</Link></li>
         <li><Link to="/tutorial">Tutorial</Link></li>
         <li><Link to="/projects">Projects</Link></li>
+        <Link to="/propose">Propose a project</Link>
       </ul>
     </nav>
   );

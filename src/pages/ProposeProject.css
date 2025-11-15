@@ -1,0 +1,183 @@
+/* Definim culorile (Fundal alb, Card negru, Accent albastru) */
+:root {
+  --accent-gradient: linear-gradient(45deg, #00aaff, #aa00ff);
+  --fundal-pagina: #f0f2f5; 
+  --fundal-card: #2a2a2a; 
+  --text-principal: #e0e0e0; 
+  --text-secundar: #888888;
+  --bordura: #444444;
+  --fundal-input: #3a3a3a;
+}
+
+/* Fundalul paginii (alb/gri-deschis) cu grilă */
+.propunere-page-background {
+  width: 100%;
+  min-height: calc(100vh - 80px);
+  background-color: var(--fundal-pagina);
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+  background-size: 20px 20px;
+  padding: 40px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+/* Containerul formularului (cardul negru) */
+.propunere-container {
+  max-width: 600px;
+  width: 100%;
+  background-color: var(--fundal-card);
+  border: 1px solid var(--bordura);
+  border-radius: 16px;
+  padding: 35px 40px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  color: var(--text-principal);
+  animation: fadeIn 0.5s ease-out; /* Animație de intrare */
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Titlurile din card */
+.propunere-titlu {
+  /* Titlu cu text gradient */
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1.8em;
+}
+
+.propunere-subtitlu {
+  text-align: center;
+  color: var(--text-secundar);
+  font-size: 1.05em;
+  margin-bottom: 30px;
+}
+
+/* Stilul formularului */
+.propunere-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-grup {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-grup label {
+  font-weight: bold;
+  color: #c0c0c0;
+  margin-bottom: 8px;
+  font-size: 0.9em;
+}
+
+/* Stilul pentru input, textarea, select */
+.form-grup input,
+.form-grup textarea,
+.form-grup select {
+  background-color: var(--fundal-input);
+  border: 1px solid var(--bordura);
+  border-radius: 8px;
+  padding: 12px 15px;
+  color: var(--text-principal);
+  font-size: 1em;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Culoarea textului placeholder */
+.form-grup input::placeholder,
+.form-grup textarea::placeholder {
+  color: var(--text-secundar);
+}
+
+/* Efectul de focus (când dai click) */
+.form-grup input:focus,
+.form-grup textarea:focus,
+.form-grup select:focus {
+  outline: none;
+  border-color: #00aaff;
+  box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+}
+
+.form-grup textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Butonul de trimitere */
+.buton-trimite {
+  padding: 12px 20px;
+  font-size: 1.1em;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--accent-gradient);
+  color: #ffffff;
+  transition: all 0.2s ease;
+  margin-top: 10px;
+}
+
+.buton-trimite:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 15px rgba(170, 0, 255, 0.4);
+}
+
+.buton-trimite:active {
+  transform: scale(0.98);
+}
+
+
+/* --- STILUL PENTRU MESAJUL DE SUCCES --- */
+.succes-mesaj {
+  text-align: center;
+  padding: 20px 0;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.succes-icon {
+  font-size: 3em;
+  margin-bottom: 15px;
+}
+
+.succes-mesaj h2 {
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.succes-mesaj p {
+  color: var(--text-principal);
+  font-size: 1.1em;
+  margin-bottom: 30px;
+}
+
+/* Butonul "Trimite altă propunere" */
+.buton-succes-altul {
+  padding: 10px 20px;
+  font-size: 1em;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #3a3a3a;
+  color: var(--text-principal);
+  border: 1px solid var(--bordura);
+  transition: all 0.2s ease;
+}
+
+.buton-succes-altul:hover {
+  background-color: #4a4a4a;
+  border-color: var(--text-secundar);
+}

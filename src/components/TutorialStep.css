@@ -1,50 +1,199 @@
-.tutorial-step-card {
+/* Definim culorile (Fundal alb, Card negru, Accent albastru) */
+:root {
+  --accent-gradient: linear-gradient(45deg, #00aaff, #aa00ff);
+  
+  /* Fundalul paginii: un gri foarte deschis */
+  --fundal-pagina: #f0f2f5; 
+  
+  /* Cardul: un gri-închis (aproape negru) */
+  --fundal-card: #2a2a2a; 
+  
+  /* Textul din interiorul cardului: alb */
+  --text-principal: #e0e0e0; 
+  --text-secundar: #888888;
+  
+  /* Bordura cardului: o nuanță puțin mai deschisă decât cardul */
+  --bordura: #444444;
+}
+
+/* Fundalul paginii (alb/gri-deschis) cu grilă */
+.tutorial-page-background {
+  width: 100%;
+  min-height: calc(100vh - 80px);
+  background-color: var(--fundal-pagina);
+  
+  /* Grila subtilă, închisă la culoare */
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+  background-size: 20px 20px;
+  
+  padding: 40px 20px;
   display: flex;
-  align-items: flex-start;
-  background-color: #2f2f2f;
-  padding: 1.5rem;
-  margin: 1rem auto;
-  max-width: 700px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  border: 1px solid #444;
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
-.tutorial-step-card:hover {
-  background-color: #3a3a3a;
+/* Cardul (negru) */
+.tutorial-stepper {
+  max-width: 600px;
+  width: 100%;
+  background-color: var(--fundal-card);
+  border: 1px solid var(--bordura);
+  border-radius: 16px;
+  padding: 30px 35px;
+  /* O umbră normală, care arată bine pe fundalul alb */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  
+  /* Am scos efectul de "frosted glass", nu e nevoie pe un card solid */
+  
+  display: flex;
+  flex-direction: column;
 }
 
-.step-number {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #646cff;
-  margin-right: 1.5rem;
+/* --- Progresul (Bulinele) --- */
+.stepper-progres {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.progres-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: transparent;
+  /* Contur gri-închis pe cardul negru */
+  border: 2px solid var(--bordura); 
+  transition: all 0.3s ease;
+}
+
+/* Bulina activă: gradientul albastru */
+.progres-dot.activ {
+  background: var(--accent-gradient);
+  border: none;
+  transform: scale(1.2);
+  box-shadow: 0 0 15px rgba(170, 0, 255, 0.5);
+}
+
+/* --- Conținutul Pasului (cu animație) --- */
+.stepper-continut {
+  text-align: center;
+  min-height: 220px; 
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 10px;
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.continut-icon {
+  font-size: 3em;
   line-height: 1;
+  margin-bottom: 15px;
+  animation: iconPop 0.6s ease-out 0.2s forwards;
+  opacity: 0;
+  transform: scale(0.5);
 }
 
-.step-content {
-  flex: 1;
-  text-align: left;
-}
-
-.step-content h3 {
+/* Titlul pasului: gradientul albastru */
+.stepper-continut h3 {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+  
   margin-top: 0;
-  margin-bottom: 0;
-  font-size: 1.5rem;
+  margin-bottom: 15px;
+  font-size: 1.6em;
 }
 
-.step-content p {
-  margin-top: 1rem;
-  font-size: 1rem;
+/* Textul principal (paragraful): alb */
+.stepper-continut p {
+  color: var(--text-principal);
+  font-size: 1.05em;
   line-height: 1.6;
-  color: #e0e0e0;
+  margin: 0;
 }
 
-.step-toggle-icon {
-  font-size: 2rem;
+/* --- Butoanele de Navigare --- */
+.stepper-navigatie {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+  border-top: 1px solid var(--bordura);
+  padding-top: 25px;
+}
+
+/* Butonul "Prev" (gri-închis, ca în tema dark) */
+.buton-stepper {
+  padding: 10px 20px;
+  font-size: 1em;
   font-weight: bold;
-  color: #646cff;
-  margin-left: 1rem;
-  line-height: 0.9;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #3a3a3a;
+  color: var(--text-principal);
+  border: 1px solid var(--bordura);
+  transition: all 0.2s ease;
+}
+
+.buton-stepper:hover {
+  background-color: #4a4a4a;
+  border-color: var(--text-secundar);
+}
+
+.buton-stepper:active {
+  transform: scale(0.98);
+}
+
+/* Butonul "Next" (gradientul albastru) */
+.buton-stepper.primar {
+  background: var(--accent-gradient);
+  color: #ffffff;
+  border: none;
+}
+
+.buton-stepper.primar:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 15px rgba(170, 0, 255, 0.4);
+}
+
+/* Butonul "Prev" dezactivat */
+.buton-stepper:disabled {
+  background-color: var(--fundal-card);
+  color: var(--text-secundar);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.buton-stepper.cta-final {
+  text-decoration: none;
+}
+
+/* --- Animațiile "Pop-up" --- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes iconPop {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
