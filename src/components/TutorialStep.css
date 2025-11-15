@@ -1,0 +1,50 @@
+.tutorial-step-card {
+  display: flex;
+  align-items: flex-start;
+  background-color: #2f2f2f;
+  padding: 1.5rem;
+  margin: 1rem auto;
+  max-width: 700px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  border: 1px solid #444;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.tutorial-step-card:hover {
+  background-color: #3a3a3a;
+}
+
+.step-number {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #646cff;
+  margin-right: 1.5rem;
+  line-height: 1;
+}
+
+.step-content {
+  flex: 1;
+  text-align: left;
+}
+
+.step-content h3 {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 1.5rem;
+}
+
+.step-content p {
+  margin-top: 1rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #e0e0e0;
+}
+
+.step-toggle-icon {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #646cff;
+  margin-left: 1rem;
+  line-height: 0.9;
+}
