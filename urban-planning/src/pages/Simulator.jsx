@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import '../Simulator.css'
+import MapDisplay from '../components/MapDisplay';
 
 const cityData = {
   bucharest: {
@@ -19,6 +20,9 @@ function Simulator() {
   const [selectedCity, setSelectedCity] = useState('bucharest');
   const [selectedTool, setSelectedTool] =useState('park');
   const [percentage, setPercentage] = useState(10);
+
+  const [showLandUse, setShowLandUse] = useState(false); 
+  const [showLST, setShowLST] = useState(true);
 
   const currentCity = cityData[selectedCity];
 
@@ -80,19 +84,7 @@ function Simulator() {
 
       </div>
 
-      <MapContainer 
-        key={selectedCity} 
-        center={currentCity.position} 
-        zoom={currentCity.zoom}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <Marker position={currentCity.position}>
-          <Popup>{currentCity.name}</Popup>
-        </Marker>
-      </MapContainer>
+      <MapDisplay renderLandCover={showLandUse} renderLST={showLST}/>
       
     </div>
   )
