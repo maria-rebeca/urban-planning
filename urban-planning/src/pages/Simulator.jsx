@@ -21,8 +21,8 @@ function Simulator() {
   const [selectedTool, setSelectedTool] =useState('park');
   const [percentage, setPercentage] = useState(10);
 
-  const [showLandUse, setShowLandUse] = useState(false); 
-  const [showLST, setShowLST] = useState(true);
+  const [showLandUse, setShowLandUse] = useState(true); 
+  const [showLST, setShowLST] = useState(false);
 
   const currentCity = cityData[selectedCity];
 

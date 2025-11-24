@@ -56,6 +56,34 @@ def get_LST():
     except Exception as e:
         print(f"Error getting MapID: {e}")
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/api/get-landuse-tiles')
+def get_LandUse():
+    try:
+        lu = ee.Image('users/filippintea/land_use_raster')
+        original_codes = [11100, 14100, 13300, 50000] 
+        mapped_values  = [0,     1,     2,     3]
+        palette = [
+            'E60000', # 0: Urban Fabric (Red)
+            '1bd618', # 1: Green Urban Areas (Green)
+            'e0bb19', # 2: Construction (Yellow)
+            '00baf3'  # 3: Water (Blue)
+        ]
+        
+        remapped_image = lu.remap(original_codes, mapped_values)
+        
+        vis = {
+            'min': 0,
+            'max': 3,
+            'palette' : palette
+        }
+        mapid_dict = remapped_image.getMapId(vis)
+        return jsonify({'mapid': mapid_dict['mapid'],
+                        'token': mapid_dict['token']})
+    except Exception as e:
+        print(f"Error getting MapID: {e}")
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
