@@ -25,15 +25,36 @@ def get_stats():
         point = ee.Geometry.Point(lng, lat)
         region = point.buffer(1000)
         
-        image = ee.Image('users/filippintea/LST_Summer_Median1')
-        stats_img = image.reduceRegion(
+        lst_image = ee.Image('users/filippintea/LST_Summer_Median1')
+        urban_image = ee.Image('users/filippintea/land_use_raster').unmask()
+        
+        urban_stats = urban_image.reduceRegion(
+            reducer= ee.Reducer.frequencyHistogram().unweighted(),
+            geometry=region,
+            scale=30,
+            maxPixels=1e9
+        )
+    
+        lst_stats_img = lst_image.reduceRegion(
             reducer=ee.Reducer.mean(),
             geometry=region,
             scale=30,
             maxPixels=1e9
         )
-        mean_temp = stats_img.get('LST_final').getInfo()
-        return jsonify({'mean_temp': mean_temp})
+        mean_temp = lst_stats_img.get('LST_final').getInfo()
+        histogram = urban_stats.get('landuse_code').getInfo()
+        
+        distribution = []
+        total_pixels = sum(histogram.values())
+        
+        for type in histogram:
+            percentage = histogram[type] / total_pixels * 100
+            distribution.append({type: round(percentage, 1)})
+        
+        return jsonify({
+            'mean_temp': mean_temp,
+            'land_use_dist': distribution
+        })
         
     except Exception as e:
         print(f"Error getting stats:{e}")
