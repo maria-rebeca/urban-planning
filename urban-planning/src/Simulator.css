@@ -19,6 +19,7 @@
   background-color: #2f2f2f;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  color:#99c2ff
 }
 
 .simulator-controls h2 {
@@ -40,6 +41,7 @@
 .control-group label {
   display: block;
   margin-bottom: 0.75rem;
+  color: #99c2ff;
   font-weight: 500;
   font-size: 1.1em;
 }

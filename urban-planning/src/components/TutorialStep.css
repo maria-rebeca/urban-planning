@@ -1,28 +1,18 @@
-/* Definim culorile (Fundal alb, Card negru, Accent albastru) */
+
 :root {
   --accent-gradient: linear-gradient(45deg, #00aaff, #aa00ff);
-  
-  /* Fundalul paginii: un gri foarte deschis */
   --fundal-pagina: #f0f2f5; 
-  
-  /* Cardul: un gri-închis (aproape negru) */
   --fundal-card: #2a2a2a; 
-  
-  /* Textul din interiorul cardului: alb */
   --text-principal: #e0e0e0; 
   --text-secundar: #888888;
-  
-  /* Bordura cardului: o nuanță puțin mai deschisă decât cardul */
   --bordura: #444444;
 }
 
-/* Fundalul paginii (alb/gri-deschis) cu grilă */
 .tutorial-page-background {
   width: 100%;
   min-height: calc(100vh - 80px);
   background-color: var(--fundal-pagina);
   
-  /* Grila subtilă, închisă la culoare */
   background-image: 
     linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
@@ -35,7 +25,6 @@
   box-sizing: border-box;
 }
 
-/* Cardul (negru) */
 .tutorial-stepper {
   max-width: 600px;
   width: 100%;
@@ -43,16 +32,12 @@
   border: 1px solid var(--bordura);
   border-radius: 16px;
   padding: 30px 35px;
-  /* O umbră normală, care arată bine pe fundalul alb */
+  color:#99c2ff;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  
-  /* Am scos efectul de "frosted glass", nu e nevoie pe un card solid */
-  
   display: flex;
   flex-direction: column;
 }
 
-/* --- Progresul (Bulinele) --- */
 .stepper-progres {
   display: flex;
   justify-content: center;
@@ -65,12 +50,11 @@
   height: 12px;
   border-radius: 50%;
   background-color: transparent;
-  /* Contur gri-închis pe cardul negru */
+  
   border: 2px solid var(--bordura); 
   transition: all 0.3s ease;
 }
 
-/* Bulina activă: gradientul albastru */
 .progres-dot.activ {
   background: var(--accent-gradient);
   border: none;
@@ -78,7 +62,6 @@
   box-shadow: 0 0 15px rgba(170, 0, 255, 0.5);
 }
 
-/* --- Conținutul Pasului (cu animație) --- */
 .stepper-continut {
   text-align: center;
   min-height: 220px; 
@@ -98,7 +81,6 @@
   transform: scale(0.5);
 }
 
-/* Titlul pasului: gradientul albastru */
 .stepper-continut h3 {
   background: var(--accent-gradient);
   -webkit-background-clip: text;
@@ -111,7 +93,6 @@
   font-size: 1.6em;
 }
 
-/* Textul principal (paragraful): alb */
 .stepper-continut p {
   color: var(--text-principal);
   font-size: 1.05em;
@@ -119,7 +100,6 @@
   margin: 0;
 }
 
-/* --- Butoanele de Navigare --- */
 .stepper-navigatie {
   display: flex;
   justify-content: space-between;
@@ -128,7 +108,6 @@
   padding-top: 25px;
 }
 
-/* Butonul "Prev" (gri-închis, ca în tema dark) */
 .buton-stepper {
   padding: 10px 20px;
   font-size: 1em;
@@ -151,7 +130,6 @@
   transform: scale(0.98);
 }
 
-/* Butonul "Next" (gradientul albastru) */
 .buton-stepper.primar {
   background: var(--accent-gradient);
   color: #ffffff;
@@ -163,7 +141,6 @@
   box-shadow: 0 0 15px rgba(170, 0, 255, 0.4);
 }
 
-/* Butonul "Prev" dezactivat */
 .buton-stepper:disabled {
   background-color: var(--fundal-card);
   color: var(--text-secundar);
@@ -175,7 +152,6 @@
   text-decoration: none;
 }
 
-/* --- Animațiile "Pop-up" --- */
 @keyframes fadeInUp {
   from {
     opacity: 0;
