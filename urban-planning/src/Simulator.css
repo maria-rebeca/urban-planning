@@ -1,15 +1,12 @@
 
-
 .leaflet-container {
   height: 50vh; 
   width: 80%;
   margin: 40px auto; 
-
   border: 1px solid #ccc;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
-
 
 .simulator-controls {
   text-align: left;
@@ -69,7 +66,6 @@
   cursor: pointer;
 }
 
-
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
@@ -104,4 +100,112 @@
 
 .submit-btn:hover {
   background-color: #535bf2;
+}
+
+
+.tool-card {
+  background-color: #3b3b3b;
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.tool-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.tool-icon {
+  font-size: 1.8em;
+  color: #99c2ff;
+  margin-right: 1rem;
+  cursor: pointer;
+  transition: color 0.3s, transform 0.3s;
+}
+
+.tool-icon:hover {
+  color: #646cff;
+  transform: scale(1.1);
+}
+
+.tool-icon.active {
+  color: #ff99c2;
+}
+
+.tool-title {
+  margin: 0;
+  color: #e0e0e0;
+}
+
+.tool-description {
+  font-size: 0.9em;
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+.marker-stats {
+  background-color: #2f2f2f;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px dashed #646cff;
+  color: #e0e0e0;
+}
+
+.marker-stats h4 {
+    margin-top: 0;
+    color: #ff99c2;
+    font-size: 1.1em;
+}
+
+.marker-stats h5 {
+    margin: 0.8rem 0 0.4rem;
+    color: #99c2ff;
+    font-size: 1em;
+}
+
+.marker-stats ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.marker-stats li {
+    margin-bottom: 0.2rem;
+    font-size: 0.9em;
+}
+
+.clear-btn {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.2s;
+}
+
+.clear-btn:hover {
+    background-color: #cc0000;
+}
+
+.marker-stats.loading {
+  text-align: center;
+  color: #99c2ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  margin-right: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
