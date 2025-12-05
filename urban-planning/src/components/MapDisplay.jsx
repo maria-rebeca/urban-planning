@@ -96,7 +96,7 @@ function MapDisplay({
             url={lstTileUrl} 
             attribution="Google Earth Engine"
             zIndex={10} 
-            opacity={1}
+            opacity={0.5}
           />
         )}
 

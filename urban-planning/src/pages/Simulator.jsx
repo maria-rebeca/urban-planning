@@ -23,7 +23,7 @@ function Simulator() {
   const [percentage, setPercentage] = useState(10);
 
   const [showLandUse, setShowLandUse] = useState(true); 
-  const [showLST, setShowLST] = useState(false);
+  const [showLST, setShowLST] = useState(true);
 
   const [isMarkerToolActive, setIsMarkerToolActive] = useState(false);
   const [markerPosition, setMarkerPosition] = useState(null);

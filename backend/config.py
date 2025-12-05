@@ -15,7 +15,7 @@ class Config:
         11210: {"name": "Discontinuous Dense Urban Fabric", "color": "#FF0000"},
         11220: {"name": "Discontinuous Medium Urban Fabric", "color": "#FF4D4D"},
         11230: {"name": "Discontinuous Low Density Urban", "color": "#FE6161"},
-        11230: {"name": "Discontinuous Very Low Density Urban", "color": "#FD8181"},
+        11240: {"name": "Discontinuous Very Low Density Urban", "color": "#FD8181"},
         12100: {"name": "Industrial, Commercial, Public", "color": "#CC4DF2"},
         12220: {"name": "Road and Rail Networks", "color": "#CC4DF2"},
         13300: {"name": "Construction Sites", "color": "#e0bb19"},
