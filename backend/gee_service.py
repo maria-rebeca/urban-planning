@@ -14,29 +14,28 @@ def initialize_gee():
 
 def get_lst_mapid():
     lst = ee.Image(Config.LST_IMAGE_ID)
+    land_use_image = ee.Image(Config.LAND_USE_RASTER_ID)
+    
+    lst_clipped = lst.updateMask(land_use_image.mask())
+    
     vis = {
             'min': 20,
             'max': 45,
             'palette': ['blue', 'yellow', 'red']
     }
-    return  lst.getMapId(vis)
+    return  lst_clipped.getMapId(vis)
 
 def get_landuse_mapid():
     lu = ee.Image(Config.LAND_USE_RASTER_ID)
-    original_codes = [11100, 14100, 13300, 50000] 
-    mapped_values  = [0,     1,     2,     3]
-    palette = [
-        'E60000', # 0: Urban Fabric (Red)
-        '1bd618', # 1: Green Urban Areas (Green)
-        'e0bb19', # 2: Construction (Yellow)
-        '00baf3'  # 3: Water (Blue)
-    ]
-        
+    original_codes = list(Config.LAND_USE_MAP.keys())
+    mapped_values = list(range(len(original_codes)))
+    palette = [item['color'] for item in Config.LAND_USE_MAP.values()]
+    
     remapped_image = lu.remap(original_codes, mapped_values)
     
     vis = {
         'min': 0,
-        'max': 3,
+        'max': len(original_codes) - 1,
         'palette' : palette
     }
     return remapped_image.getMapId(vis)
