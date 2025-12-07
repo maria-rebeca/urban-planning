@@ -61,7 +61,8 @@ print(f"\nModel saved to '{model_filename}'")
 # Create a new DataFrame to compare actual vs. predicted values
 predictions_df = pd.DataFrame({
     'Actual_Temperature': y_test,
-    'Predicted_Temperature': y_pred
+    'Predicted_Temperature': y_pred,
+    'Difference': (y_test - y_pred).round(2)
 })
 
 # Round the values for easier reading
