@@ -8,7 +8,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 model_path = os.path.join(script_dir, 'urban_heat_model.joblib')
 
 try:
-    model = joblib.load('c:/ROSPIN/urban-planning/backend/scripts/urban_heat_model.joblib')
+    model = joblib.load('urban_heat_model.joblib')
     print("Model 'urban_heat_model.joblib' loaded successfully.")
 except FileNotFoundError:
     print(f"Error: Model file not found at {model_path}.")
@@ -43,7 +43,7 @@ new_data_sample = {
 # The model expects the data in a specific order of columns.
 # We will load the original training data columns to ensure the order is correct.
 try:
-    training_data = pd.read_csv('c:/ROSPIN/urban-planning/backend/scripts/final_training_data.csv')
+    training_data = pd.read_csv('final_training_data.csv')
     feature_columns = [col for col in training_data.columns if col != 'target_temp']
 except FileNotFoundError:
     print("Error: 'final_training_data.csv' not found. Needed to get column order.")

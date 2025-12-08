@@ -8,6 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 __pycache__
 
+lst.tif.aux.xml
 node_modules
 dist
 dist-ssr
@@ -24,3 +25,4 @@ dist-ssr
 *.sln
 *.sw?
 .venv
+.tif

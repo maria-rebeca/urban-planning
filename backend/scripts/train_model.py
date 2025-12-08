@@ -1,4 +1,4 @@
-import pandas as pd
+import pandas as pd # pyright: ignore[reportMissingModuleSource]
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
@@ -6,7 +6,7 @@ import joblib
 
 # 1. Load the dataset
 try:
-    data = pd.read_csv('c:/ROSPIN/urban-planning/backend/scripts/final_training_data.csv')
+    data = pd.read_csv('final_training_data.csv')
     print("CSV file loaded successfully.")
 except FileNotFoundError:
     print("Error: 'final_training_data.csv' not found. Make sure the file is in the same directory.")
