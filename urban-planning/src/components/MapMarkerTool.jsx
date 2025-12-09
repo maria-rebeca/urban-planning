@@ -22,7 +22,7 @@ const MapMarkerTool = ({ isActive, onToggle, markerData, onClearMarker, isLoadin
       {!isLoading && markerData && (
         <div className="marker-stats">
           <h4>📍 Stats (1km Radius)</h4>
-          <p>🌡️ **LST Temp:** {markerData.mean_temp} °C</p>
+          <p>🌡️ **LST Temp:** {markerData.mean_temp.toFixed(2)} °C</p>
           
           <h5>Land Use Distribution:</h5>
           <ul>

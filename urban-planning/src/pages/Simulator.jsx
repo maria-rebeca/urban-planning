@@ -40,6 +40,7 @@ function Simulator() {
   const [selectedTool, setSelectedTool] = useState('14100'); 
   const [percentage, setPercentage] = useState(10);
   const [prediction, setPrediction] = useState(null);
+  const [simulatedDist, setSimulatedDist] = useState(null)
 
   const [showLandUse, setShowLandUse] = useState(true); 
   const [showLST, setShowLST] = useState(false);
@@ -62,7 +63,8 @@ function Simulator() {
       '13300', '13400', '33000', // Tier 1: Wasted
       '21000', '22000', '23000', '24000', // Tier 2: Agriculture
       '12100', '11240', '11230', // Tier 3: Low Density
-      '11220', '11210', '11100' // Tier 4: High Density
+      '11220', '11210', '11100', // Tier 4: High Density
+      '14100', '14200', '31000', '32000', '12210', '12220' // Tier 5
     ];
     // Add targetCode to protected list so it's not shrunk in Step B
     const protectedCodes = ['50000', '40000', '31000', '12210', '12230', '12400', targetCode];
@@ -158,7 +160,7 @@ function Simulator() {
         normalizedDist[code] = total === 0 ? 0 : (val / total) * 100;
       });
 
-      console.log("📤 Sending to AI:", normalizedDist);
+      setSimulatedDist(normalizedDist)
 
       const response = await axios.post('http://localhost:5000/api/predict-temperature', {
         distribution: normalizedDist
@@ -283,16 +285,42 @@ function Simulator() {
             <strong>Results:</strong>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
               <span>Current LST:</span>
-              <span>{markerStats?.target_temp?.toFixed(1)}°C</span>
+              <span>{markerStats?.mean_temp?.toFixed(2)}°C</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px', fontSize: '1.2em', color: '#1976d2', fontWeight: 'bold' }}>
               <span>Predicted LST:</span>
-              <span>{prediction.toFixed(1)}°C</span>
+              <span>{prediction.toFixed(2)}°C</span>
             </div>
-            <div style={{ fontSize: '0.9em', color: prediction > markerStats.target_temp ? 'red' : 'green', marginTop: '5px', textAlign: 'right' }}>
-              {prediction > markerStats.target_temp ? "▲" : "▼"} {Math.abs(prediction - markerStats.target_temp).toFixed(1)}°C change
+            <div style={{ fontSize: '0.9em', color: prediction > markerStats.mean_temp ? 'red' : 'green', marginTop: '5px', textAlign: 'right' }}>
+              {prediction > markerStats.mean_temp ? "▲" : "▼"} {Math.abs(prediction - markerStats.mean_temp).toFixed(1)}°C change
             </div>
-             <div style={{ fontSize: '0.8em', color: '#666', marginTop: '10px', fontStyle: 'italic' }}>
+            {simulatedDist && (
+              <div style={{ marginTop: '15px', borderTop: '1px solid #ccc', paddingTop: '10px' }}>
+                <strong>New Land Distribution:</strong>
+                <ul style={{ listStyle: 'none', paddingLeft: 0, marginTop: '5px', fontSize: '0.9em' }}>
+                  {Object.entries(simulatedDist)
+                    .filter(([code, pct]) => pct > 0.1) // Only show relevant items (>0.1%)
+                    .sort((a, b) => b[1] - a[1])        // Sort by percentage Descending
+                    .map(([code, pct]) => {
+                      const name = LAND_USE_NAMES[code] || code;
+                      const isTarget = String(code) === String(selectedTool);
+                      return (
+                        <li key={code} style={{ 
+                          display: 'flex', 
+                          justifyContent: 'space-between', 
+                          marginBottom: '3px',
+                          color: isTarget ? '#2196f3' : '#333',
+                          fontWeight: isTarget ? 'bold' : 'normal'
+                        }}>
+                          <span>{name}:</span>
+                          <span>{pct.toFixed(1)}%</span>
+                        </li>
+                      );
+                    })}
+                </ul>
+              </div>
+            )}
+            <div style={{ fontSize: '0.8em', color: '#666', marginTop: '10px', fontStyle: 'italic' }}>
                *Simulated by replacing unused/empty land first.
             </div>
           </div>
