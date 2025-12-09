@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet"
+import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import { useState, useEffect, useCallback } from 'react'
 import MapClickHandler from "./MapClickHandler"
@@ -23,6 +23,7 @@ function MapDisplay({
     if (!markerPosition) return null;
 
     return (
+      <>
         <Marker position={markerPosition}>
             <Popup>
                 {isLoading ? (
@@ -37,7 +38,7 @@ function MapDisplay({
                                 const [name, percentage] = Object.entries(item)[0];
                                 return (
                                     <li key={index}>
-                                        *{name}:* {percentage}%
+                                        *{name}:* {percentage.toFixed(2)}%
                                     </li>
                                 );
                             })}
@@ -49,6 +50,17 @@ function MapDisplay({
                 )}
             </Popup>
         </Marker>
+        <Circle 
+                center={markerPosition}
+                radius={1000} 
+                pathOptions={{ 
+                    color: '#2196f3',       
+                    fillColor: '#2196f3',   
+                    fillOpacity: 0.15,      
+                    weight: 1               
+                }} 
+            />
+      </>
     );
   };
 
