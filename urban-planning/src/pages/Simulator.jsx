@@ -236,7 +236,46 @@ function Simulator() {
             <option value="cluj">Cluj-Napoca</option>
           </select>
         </div>
-
+        {/* Map Layer Toggle Buttons */}
+        <div className="control-group">
+          <label>View Layer:</label>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              type="button"
+              onClick={() => { setShowLandUse(true); setShowLST(false); }}
+              style={{
+                flex: 1,
+                padding: '10px',
+                borderRadius: '6px',
+                border: '1px solid #ccc',
+                backgroundColor: showLandUse ? '#4CAF50' : '#f5f5f5',
+                color: showLandUse ? 'white' : '#333',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                transition: 'all 0.2s'
+              }}
+            >
+              🌍 Land Use
+            </button>
+            <button
+              type="button"
+              onClick={() => { setShowLandUse(false); setShowLST(true); }}
+              style={{
+                flex: 1,
+                padding: '10px',
+                borderRadius: '6px',
+                border: '1px solid #ccc',
+                backgroundColor: showLST ? '#FF5722' : '#f5f5f5',
+                color: showLST ? 'white' : '#333',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                transition: 'all 0.2s'
+              }}
+            >
+              🌡️ Temperature
+            </button>
+          </div>
+        </div>
         <div className="control-group">
           <label htmlFor="tool-select">2. Select Land Use to Add:</label>
           <select id="tool-select" value={selectedTool} onChange={handleToolChange}>
