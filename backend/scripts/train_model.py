@@ -1,7 +1,9 @@
 import pandas as pd # pyright: ignore[reportMissingModuleSource]
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import train_test_split, GridSearchCV #added
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor #added
+from sklearn.metrics import mean_squared_error, r2_score #added
+from sklearn.preprocessing import StandardScaler, PolynomialFeatures  #added
+
 import joblib 
 
 # 1. Load the dataset
@@ -28,7 +30,8 @@ print(f"Testing data shape: {X_test.shape}")
 
 # 4. Initialize and Train the Model
 # A RandomForestRegressor is a good starting point for many tabular data problems.
-model = RandomForestRegressor(n_estimators=100, random_state=42, oob_score=True)
+#model = RandomForestRegressor(n_estimators=100, random_state=42, oob_score=True)
+model = GradientBoostingRegressor(n_estimators=200, learning_rate=0.01, max_depth=5, random_state=42)
 
 print("\nTraining the model...")
 model.fit(X_train, y_train)
