@@ -54,6 +54,8 @@ function Simulator() {
   // --- SMART PRIORITY REPLACEMENT ---
   const calculateSmartDistribution = (currentDist, targetCode, percentageToAdd) => {
     let newDist = { ...currentDist };
+    
+    // Keep track of how much we still need to find
     let needed = parseFloat(percentageToAdd);
 
     const replaceOrder = [
@@ -62,8 +64,10 @@ function Simulator() {
       '12100', '11240', '11230', // Tier 3: Low Density
       '11220', '11210', '11100' // Tier 4: High Density
     ];
-    const protectedCodes = ['50000', '40000', '31000', '12210', '12230', '12400'];
+    // Add targetCode to protected list so it's not shrunk in Step B
+    const protectedCodes = ['50000', '40000', '31000', '12210', '12230', '12400', targetCode];
 
+    // Step A: Priority List (Take from easiest first)
     for (const victimCode of replaceOrder) {
       if (needed <= 0) break;
       if (victimCode === targetCode) continue;
@@ -71,34 +75,52 @@ function Simulator() {
       if (newDist[victimCode] > 0) {
         const available = newDist[victimCode];
         if (available >= needed) {
+          // Found enough space here
           newDist[victimCode] = available - needed;
           needed = 0;
         } else {
+          // Take everything and keep looking
           newDist[victimCode] = 0;
           needed -= available;
         }
       }
     }
 
+    // Step B: Fallback (Proportional Shrinkage)
     if (needed > 0) {
+      // 1. Calculate total space available in non-protected categories
       const totalUnlocked = Object.keys(newDist)
-        .filter(k => !protectedCodes.includes(k) && k !== targetCode)
+        .filter(k => !protectedCodes.includes(k))
         .reduce((sum, k) => sum + (newDist[k] || 0), 0);
 
       if (totalUnlocked > 0) {
-        const ratio = (totalUnlocked - needed) / totalUnlocked;
+        // 2. 🔥 FIX: Don't take more than what's available
+        const amountToTake = Math.min(needed, totalUnlocked);
+        
+        // 3. Calculate a positive shrinkage ratio
+        // Example: If we have 20 and take 5, new total is 15. Ratio is 15/20 = 0.75
+        const ratio = (totalUnlocked - amountToTake) / totalUnlocked;
+
+        // 4. Apply shrinkage
         Object.keys(newDist).forEach(k => {
-          if (!protectedCodes.includes(k) && k !== targetCode) {
+          if (!protectedCodes.includes(k)) {
             newDist[k] = newDist[k] * ratio;
           }
         });
+
+        // 5. Update 'needed' to reflect what we couldn't find
+        // If we needed 24 but only found 20, needed becomes 4.
+        needed = needed - amountToTake;
       }
     }
 
-    newDist[targetCode] = (newDist[targetCode] || 0) + parseFloat(percentageToAdd);
+    // Step C: Add the actual amount found to the target
+    // If we wanted to add 34% but 'needed' is still 4%, we only add 30%.
+    const actualAmountAdded = parseFloat(percentageToAdd) - needed;
+    newDist[targetCode] = (newDist[targetCode] || 0) + actualAmountAdded;
+
     return newDist;
   };
-
   // --- SIMULATION RUNNER ---
   const runSimulation = async () => {
     if (!markerStats || !markerStats.land_use_dist) {
@@ -156,7 +178,7 @@ function Simulator() {
     }
   };
 
-  // --- FETCH STATS (CRASH FIX) ---
+  // --- FETCH STATS ---
   const fetchStats = useCallback(async (lat, lng) => {
     setIsLoading(true);
     setMarkerStats(null); 
