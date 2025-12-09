@@ -70,5 +70,5 @@ def calculate_stats(lat, lng):
         code = int(float(type))
         if code in Config.LAND_USE_MAP:
             percentage = histogram[type] / total_pixels * 100
-            distribution.append({Config.LAND_USE_MAP[code]['name']: round(percentage, 1)})
+            distribution.append({Config.LAND_USE_MAP[code]['name']: round(percentage, 1), 'Code': code})
     return (mean_temp, distribution)

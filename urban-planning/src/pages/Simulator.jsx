@@ -4,26 +4,45 @@ import MapDisplay from '../components/MapDisplay';
 import MapMarkerTool from '../components/MapMarkerTool';
 import axios from 'axios'; 
 
+const LAND_USE_NAMES = {
+  11100: "Continuous Urban Fabric",
+  11210: "Discontinuous Dense Urban Fabric",
+  11220: "Discontinuous Medium Urban Fabric",
+  11230: "Discontinuous Low Density Urban",
+  11240: "Discontinuous Very Low Density Urban",
+  12100: "Industrial, Commercial, Public, Military and Private units",
+  12210: "Fast transit Roads",
+  12220: "Other Roads and associated land",
+  12230: "Railways and associated land",
+  12400: "Airports",
+  13300: "Construction Sites",
+  13400: "Land without current use",
+  14100: "Green Urban Areas",
+  14200: "Sports and Leisure Facilities",
+  21000: "Arable land",
+  22000: "Permanent crops",
+  23000: "Pastures",
+  24000: "Complex and mixed cultivations",
+  31000: "Forests",
+  32000: "Scrub and/or Herbaceous vegetation associations",
+  33000: "Open spaces with little or no vegetation",
+  40000: "Wetlands",
+  50000: "Water Bodies"
+};
+
 const cityData = {
-  bucharest: {
-    name: "Bucharest",
-    position: [44.4268, 26.1025],
-    zoom: 13
-  },
-  cluj: {
-    name: "Cluj-Napoca",
-    position: [46.7712, 23.6236],
-    zoom: 14
-  }
+  bucharest: { name: "Bucharest", position: [44.4268, 26.1025], zoom: 13 },
+  cluj: { name: "Cluj-Napoca", position: [46.7712, 23.6236], zoom: 14 }
 };
 
 function Simulator() {
   const [selectedCity, setSelectedCity] = useState('bucharest');
-  const [selectedTool, setSelectedTool] =useState('park');
+  const [selectedTool, setSelectedTool] = useState('14100'); 
   const [percentage, setPercentage] = useState(10);
+  const [prediction, setPrediction] = useState(null);
 
   const [showLandUse, setShowLandUse] = useState(true); 
-  const [showLST, setShowLST] = useState(true);
+  const [showLST, setShowLST] = useState(false);
 
   const [isMarkerToolActive, setIsMarkerToolActive] = useState(false);
   const [markerPosition, setMarkerPosition] = useState(null);
@@ -32,47 +51,146 @@ function Simulator() {
 
   const currentCity = cityData[selectedCity];
 
+  // --- SMART PRIORITY REPLACEMENT ---
+  const calculateSmartDistribution = (currentDist, targetCode, percentageToAdd) => {
+    let newDist = { ...currentDist };
+    let needed = parseFloat(percentageToAdd);
 
-  const handleCityChange = (event) => {
-    setSelectedCity(event.target.value);
+    const replaceOrder = [
+      '13300', '13400', '33000', // Tier 1: Wasted
+      '21000', '22000', '23000', '24000', // Tier 2: Agriculture
+      '12100', '11240', '11230', // Tier 3: Low Density
+      '11220', '11210', '11100' // Tier 4: High Density
+    ];
+    const protectedCodes = ['50000', '40000', '31000', '12210', '12230', '12400'];
+
+    for (const victimCode of replaceOrder) {
+      if (needed <= 0) break;
+      if (victimCode === targetCode) continue;
+
+      if (newDist[victimCode] > 0) {
+        const available = newDist[victimCode];
+        if (available >= needed) {
+          newDist[victimCode] = available - needed;
+          needed = 0;
+        } else {
+          newDist[victimCode] = 0;
+          needed -= available;
+        }
+      }
+    }
+
+    if (needed > 0) {
+      const totalUnlocked = Object.keys(newDist)
+        .filter(k => !protectedCodes.includes(k) && k !== targetCode)
+        .reduce((sum, k) => sum + (newDist[k] || 0), 0);
+
+      if (totalUnlocked > 0) {
+        const ratio = (totalUnlocked - needed) / totalUnlocked;
+        Object.keys(newDist).forEach(k => {
+          if (!protectedCodes.includes(k) && k !== targetCode) {
+            newDist[k] = newDist[k] * ratio;
+          }
+        });
+      }
+    }
+
+    newDist[targetCode] = (newDist[targetCode] || 0) + parseFloat(percentageToAdd);
+    return newDist;
   };
 
-  const handleToolChange = (event) => {
-    setSelectedTool(event.target.value);
+  // --- SIMULATION RUNNER ---
+  const runSimulation = async () => {
+    if (!markerStats || !markerStats.land_use_dist) {
+      alert("Please select a point on the map first!");
+      return;
+    }
+
+    setIsLoading(true);
+    setPrediction(null);
+
+   try {
+      const currentDist = {};
+      const sourceDist = markerStats.land_use_dist; // <--- FIXED: Using your actual variable name
+
+      sourceDist.forEach(item => {
+        if (item.Code) {
+          // Find the key that holds the percentage value (it's the key that isn't 'Code')
+          const nameKey = Object.keys(item).find(k => k !== 'Code');
+          const value = nameKey ? item[nameKey] : 0;
+          
+          // Map Code -> Value (e.g., "11100" -> 20.5)
+          currentDist[String(item.Code)] = Number(value);
+        }
+      });
+
+      const targetCode = String(selectedTool);
+      const smartDist = calculateSmartDistribution(currentDist, targetCode, percentage);
+
+      const total = Object.values(smartDist).reduce((a, b) => a + b, 0);
+      const normalizedDist = {};
+      
+      // Ensure we send ALL known codes (even if 0) so the AI gets a full vector
+      Object.keys(LAND_USE_NAMES).forEach(code => {
+        const val = smartDist[code] || 0;
+        normalizedDist[code] = total === 0 ? 0 : (val / total) * 100;
+      });
+
+      console.log("📤 Sending to AI:", normalizedDist);
+
+      const response = await axios.post('http://localhost:5000/api/predict-temperature', {
+        distribution: normalizedDist
+      });
+
+      if (response.data.status === 'success') {
+        setPrediction(response.data.predicted_temp);
+      } else {
+        alert("Simulation Error: " + response.data.error);
+      }
+
+    } catch (error) {
+      console.error("Simulation failed:", error);
+      alert("Failed to connect to AI server.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handlePercentageChange = (event) => {
-    setPercentage(event.target.value);
-  };
+  // --- FETCH STATS (CRASH FIX) ---
+  const fetchStats = useCallback(async (lat, lng) => {
+    setIsLoading(true);
+    setMarkerStats(null); 
+    setPrediction(null);
+    try {
+      const response = await axios.get(`http://localhost:5000/api/get-stats?lat=${lat}&lng=${lng}`);
+      let data = response.data;
+      setMarkerStats(data);
+      console.log(data)
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+      setMarkerPosition(null); 
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // --- EVENT HANDLERS ---
+  const handleCityChange = (e) => setSelectedCity(e.target.value);
+  const handleToolChange = (e) => setSelectedTool(e.target.value);
+  const handlePercentageChange = (e) => setPercentage(e.target.value);
   
   const handleClearMarker = useCallback(() => {
     setMarkerPosition(null);
     setMarkerStats(null);
+    setPrediction(null);
     setIsLoading(false);
   }, []);
 
   const handleMarkerToolToggle = () => {
     const newState = !isMarkerToolActive;
     setIsMarkerToolActive(newState);
-    if (!newState) {
-      handleClearMarker();
-    }
+    if (!newState) handleClearMarker();
   };
-
-  const fetchStats = useCallback(async (lat, lng) => {
-    setIsLoading(true);
-    setMarkerStats(null); 
-    try {
-      const response = await axios.get(`http://localhost:5000/api/get-stats?lat=${lat}&lng=${lng}`);
-      setMarkerStats(response.data);
-    } catch (error) {
-      console.error("Eroare la preluarea statisticilor:", error);
-      alert("A apărut o eroare la preluarea datelor statistice. Verifică serverul.");
-      setMarkerPosition(null); 
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
 
   const handleMapClick = useCallback((latlng) => {
     if (isMarkerToolActive) {
@@ -83,7 +201,6 @@ function Simulator() {
 
   return (
     <div className="simulator-page">
-      
       <div className="simulator-controls">
         <h2>Urban Simulator</h2>
         <p>Select your parameters to see their potential impact.</p>
@@ -99,15 +216,15 @@ function Simulator() {
         <div className="control-group">
           <label htmlFor="tool-select">2. Select Land Use to Add:</label>
           <select id="tool-select" value={selectedTool} onChange={handleToolChange}>
-            <option value="park">Green Park (Increases Green Space)</option>
-            <option value="factory">Factory (Increases Industry)</option>
-            <option value="house">Housing (Increases Buildings)</option>
-            <option value="road">Road (Increases Roads)</option>
+            <option disabled>──────────</option>
+            {Object.entries(LAND_USE_NAMES).map(([code, name]) => (
+               <option key={code} value={code}>{name}</option>
+            ))}
           </select>
         </div>
 
         <div className="control-group">
-          <label htmlFor="percentage-slider">3. Percentage of land to convert: {percentage}%</label>
+          <label htmlFor="percentage-slider">3. Percentage to Add: {percentage}%</label>
           <input 
             id="percentage-slider" 
             type="range" 
@@ -129,9 +246,35 @@ function Simulator() {
             />
         </div>
 
-        <button type="button" className="submit-btn">
-          Run Simulation
+        <button 
+          type="button" 
+          className="submit-btn" 
+          onClick={runSimulation}
+          disabled={isLoading || !markerStats}
+          style={{ opacity: (!markerStats || isLoading) ? 0.6 : 1 }}
+        >
+          {isLoading ? "Simulating..." : "Run Simulation 🚀"}
         </button>
+
+        {prediction !== null && (
+          <div className="simulation-result" style={{ marginTop: '20px', padding: '15px', background: '#e3f2fd', borderRadius: '8px', borderLeft: '5px solid #2196f3' }}>
+            <strong>Results:</strong>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+              <span>Current LST:</span>
+              <span>{markerStats?.target_temp?.toFixed(1)}°C</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px', fontSize: '1.2em', color: '#1976d2', fontWeight: 'bold' }}>
+              <span>Predicted LST:</span>
+              <span>{prediction.toFixed(1)}°C</span>
+            </div>
+            <div style={{ fontSize: '0.9em', color: prediction > markerStats.target_temp ? 'red' : 'green', marginTop: '5px', textAlign: 'right' }}>
+              {prediction > markerStats.target_temp ? "▲" : "▼"} {Math.abs(prediction - markerStats.target_temp).toFixed(1)}°C change
+            </div>
+             <div style={{ fontSize: '0.8em', color: '#666', marginTop: '10px', fontStyle: 'italic' }}>
+               *Simulated by replacing unused/empty land first.
+            </div>
+          </div>
+        )}
       </div>
 
       <MapDisplay 
@@ -145,9 +288,8 @@ function Simulator() {
         handleClearMarker={handleClearMarker} 
         isLoading={isLoading}
       />
-      
     </div>
   )
 }
 
-export default Simulator
+export default Simulator;

@@ -3,7 +3,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 import joblib 
-
+import json
+import os
 # 1. Load the dataset
 try:
     data = pd.read_csv('final_training_data.csv')
@@ -18,6 +19,13 @@ target = 'target_temp'
 
 X = data[features]
 y = data[target]
+
+## Save the column names list so the backend knows what order to use
+import json
+feature_columns = list(X.columns)
+with open('model_columns.json', 'w') as f:
+    json.dump(feature_columns, f)
+print("Saved model_columns.json")
 
 # 3. Split the data into training and testing sets
 # 80% for training, 20% for testing
