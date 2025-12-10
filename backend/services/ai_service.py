@@ -27,39 +27,32 @@ class AIService:
                 with open(columns_path, 'r') as f:
                     self.expected_columns = json.load(f)
             else:
-                print("⚠️ Warning: model_columns.json not found!")
+                print("Warning: model_columns.json not found!")
 
         except Exception as e:
             print(f"❌ Error loading AI model: {e}")
 
     def predict_temperature(self, user_land_use):
-        """
-        Args:
-            user_land_use (dict): { "11100": 50.5, "14100": 20.0, ... }
-        Returns:
-            float: Predicted Temperature
-        """
-        if not self.model or not self.expected_columns:
+        if not self.model:
             raise Exception("Model is not loaded.")
 
-        # 1. Create a dictionary with ALL zeros for every expected column
-        # This ensures we have the 24 columns the model expects
-        input_data = {col: 0.0 for col in self.expected_columns}
 
-        # 2. Fill in the values provided by the user
+        input_data = {col: 0.0 for col in self.expected_columns}
         for code, percent in user_land_use.items():
-            col_name = f"pct_{code}" # Match the training name (e.g., pct_11100)
+            clean_code = str(code).replace('pct_', '')
+            col_name = f"pct_{clean_code}"
             if col_name in input_data:
                 input_data[col_name] = float(percent)
+        
+        total_sum = sum(input_data.values())
+        print(f"📊 Input Data Sum: {total_sum:.2f}%")
+        
+        if abs(total_sum - 100) > 1:
+            print("The data sums to less/more than 100%. This breaks the physics!")
+            print("The model thinks the city is partially 'Empty Space'.")
 
-        total_input = sum(input_data.values())
-        print(f"🤖 AI Input Sum: {total_input}%")
-        # 3. Convert to DataFrame (1 row)
         df = pd.DataFrame([input_data])
+        df = df[self.expected_columns]
+        return self.model.predict(df)[0]
 
-        # 4. Predict
-        prediction = self.model.predict(df)[0]
-        return round(prediction, 2)
-
-# Create a single instance to be imported
 ai_service = AIService()

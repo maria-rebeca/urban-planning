@@ -26,13 +26,27 @@ const MapMarkerTool = ({ isActive, onToggle, markerData, onClearMarker, isLoadin
           
           <h5>Land Use Distribution:</h5>
           <ul>
-            {markerData.land_use_dist && markerData.land_use_dist.map((item, index) => {
-              const name = Object.keys(item).find(k => k !== 'Code');
-              const value = item[name];
-              
-              if (!name) return null; // Safety skip
-              return <li key={index}><strong>{name}:</strong> {Number(value).toFixed(1)}%</li>;
-            })}
+            {markerData.land_use_dist && [...markerData.land_use_dist]
+              .sort((a, b) => {
+                const nameA = Object.keys(a).find(k => k !== 'Code');
+                const valA = a[nameA];
+                
+                const nameB = Object.keys(b).find(k => k !== 'Code');
+                const valB = b[nameB];
+                
+                return valB - valA;
+              })
+              .map((item, index) => {
+                const name = Object.keys(item).find(k => k !== 'Code');
+                const value = item[name];
+                
+                if (!name) return null; 
+                return (
+                  <li key={index}>
+                    <strong>{name}:</strong> {Number(value).toFixed(1)}%
+                  </li>
+                );
+              })}
           </ul>
           <button onClick={onClearMarker} className="clear-btn">Clear Pin</button>
         </div>

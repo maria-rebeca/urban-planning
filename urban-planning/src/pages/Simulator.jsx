@@ -55,21 +55,18 @@ function Simulator() {
   // --- SMART PRIORITY REPLACEMENT ---
   const calculateSmartDistribution = (currentDist, targetCode, percentageToAdd) => {
     let newDist = { ...currentDist };
-    
-    // Keep track of how much we still need to find
+
     let needed = parseFloat(percentageToAdd);
 
     const replaceOrder = [
-      '13300', '13400', '33000', // Tier 1: Wasted
-      '21000', '22000', '23000', '24000', // Tier 2: Agriculture
-      '12100', '11240', '11230', // Tier 3: Low Density
-      '11220', '11210', '11100', // Tier 4: High Density
-      '14100', '14200', '31000', '32000', '12210', '12220' // Tier 5
+      '13300', '13400', '33000', 
+      '21000', '22000', '23000', '24000', 
+      '12100', '11240', '11230',
+      '11220', '11210', '11100', 
+      '14100', '14200', '31000', '32000', '12210', '12220' 
     ];
-    // Add targetCode to protected list so it's not shrunk in Step B
     const protectedCodes = ['50000', '40000', '31000', '12210', '12230', '12400', targetCode];
 
-    // Step A: Priority List (Take from easiest first)
     for (const victimCode of replaceOrder) {
       if (needed <= 0) break;
       if (victimCode === targetCode) continue;
@@ -77,52 +74,40 @@ function Simulator() {
       if (newDist[victimCode] > 0) {
         const available = newDist[victimCode];
         if (available >= needed) {
-          // Found enough space here
           newDist[victimCode] = available - needed;
           needed = 0;
         } else {
-          // Take everything and keep looking
           newDist[victimCode] = 0;
           needed -= available;
         }
       }
     }
 
-    // Step B: Fallback (Proportional Shrinkage)
     if (needed > 0) {
-      // 1. Calculate total space available in non-protected categories
       const totalUnlocked = Object.keys(newDist)
         .filter(k => !protectedCodes.includes(k))
         .reduce((sum, k) => sum + (newDist[k] || 0), 0);
 
       if (totalUnlocked > 0) {
-        // 2. 🔥 FIX: Don't take more than what's available
         const amountToTake = Math.min(needed, totalUnlocked);
-        
-        // 3. Calculate a positive shrinkage ratio
-        // Example: If we have 20 and take 5, new total is 15. Ratio is 15/20 = 0.75
         const ratio = (totalUnlocked - amountToTake) / totalUnlocked;
 
-        // 4. Apply shrinkage
         Object.keys(newDist).forEach(k => {
           if (!protectedCodes.includes(k)) {
             newDist[k] = newDist[k] * ratio;
           }
         });
 
-        // 5. Update 'needed' to reflect what we couldn't find
-        // If we needed 24 but only found 20, needed becomes 4.
         needed = needed - amountToTake;
       }
     }
 
-    // Step C: Add the actual amount found to the target
-    // If we wanted to add 34% but 'needed' is still 4%, we only add 30%.
     const actualAmountAdded = parseFloat(percentageToAdd) - needed;
     newDist[targetCode] = (newDist[targetCode] || 0) + actualAmountAdded;
 
     return newDist;
   };
+
   // --- SIMULATION RUNNER ---
   const runSimulation = async () => {
     if (!markerStats || !markerStats.land_use_dist) {
@@ -132,44 +117,64 @@ function Simulator() {
 
     setIsLoading(true);
     setPrediction(null);
+    setSimulatedDist(null);
 
-   try {
+    try {
       const currentDist = {};
-      const sourceDist = markerStats.land_use_dist; // <--- FIXED: Using your actual variable name
+      const sourceDist = markerStats.land_use_dist;
 
       sourceDist.forEach(item => {
         if (item.Code) {
-          // Find the key that holds the percentage value (it's the key that isn't 'Code')
           const nameKey = Object.keys(item).find(k => k !== 'Code');
           const value = nameKey ? item[nameKey] : 0;
-          
-          // Map Code -> Value (e.g., "11100" -> 20.5)
           currentDist[String(item.Code)] = Number(value);
         }
+      });
+      
+      const totalCurrent = Object.values(currentDist).reduce((a, b) => a + b, 0);
+      const normalizedCurrentPayload = {};
+      Object.keys(LAND_USE_NAMES).forEach(code => {
+        const val = currentDist[code] || 0;
+        normalizedCurrentPayload[code] = totalCurrent === 0 ? 0 : (val / totalCurrent) * 100;
       });
 
       const targetCode = String(selectedTool);
       const smartDist = calculateSmartDistribution(currentDist, targetCode, percentage);
 
-      const total = Object.values(smartDist).reduce((a, b) => a + b, 0);
-      const normalizedDist = {};
-      
-      // Ensure we send ALL known codes (even if 0) so the AI gets a full vector
+      const totalSmart = Object.values(smartDist).reduce((a, b) => a + b, 0);
+      const normalizedSmartPayload = {};
       Object.keys(LAND_USE_NAMES).forEach(code => {
         const val = smartDist[code] || 0;
-        normalizedDist[code] = total === 0 ? 0 : (val / total) * 100;
+        normalizedSmartPayload[code] = totalSmart === 0 ? 0 : (val / totalSmart) * 100;
       });
+      
+      // Save for UI Display
+      setSimulatedDist(normalizedSmartPayload);
 
-      setSimulatedDist(normalizedDist)
+      console.log("🚀 Running Delta Simulation...");
+      
+  
+      const [baselineResponse, newResponse] = await Promise.all([
+        axios.post('http://localhost:5000/api/predict-temperature', { distribution: normalizedCurrentPayload }),
+        axios.post('http://localhost:5000/api/predict-temperature', { distribution: normalizedSmartPayload })
+      ]);
 
-      const response = await axios.post('http://localhost:5000/api/predict-temperature', {
-        distribution: normalizedDist
-      });
+      if (baselineResponse.data.status === 'success' && newResponse.data.status === 'success') {
+        const baselineTemp = baselineResponse.data.predicted_temp;
+        const newTemp = newResponse.data.predicted_temp;
 
-      if (response.data.status === 'success') {
-        setPrediction(response.data.predicted_temp);
+    
+        const delta = newTemp - baselineTemp;
+        
+        console.log(`Baseline: ${baselineTemp.toFixed(2)} | 📈 New: ${newTemp.toFixed(2)} | Delta: ${delta.toFixed(4)}`);
+
+  
+        const realTemp = markerStats.target_temp || markerStats.mean_temp || 0;
+        const finalPrediction = realTemp + delta;
+
+        setPrediction(finalPrediction);
       } else {
-        alert("Simulation Error: " + response.data.error);
+        alert("Simulation Error: One of the predictions failed.");
       }
 
     } catch (error) {
@@ -179,7 +184,6 @@ function Simulator() {
       setIsLoading(false);
     }
   };
-
   // --- FETCH STATS ---
   const fetchStats = useCallback(async (lat, lng) => {
     setIsLoading(true);
@@ -279,7 +283,6 @@ function Simulator() {
         <div className="control-group">
           <label htmlFor="tool-select">2. Select Land Use to Add:</label>
           <select id="tool-select" value={selectedTool} onChange={handleToolChange}>
-            <option disabled>──────────</option>
             {Object.entries(LAND_USE_NAMES).map(([code, name]) => (
                <option key={code} value={code}>{name}</option>
             ))}
@@ -338,8 +341,8 @@ function Simulator() {
                 <strong>New Land Distribution:</strong>
                 <ul style={{ listStyle: 'none', paddingLeft: 0, marginTop: '5px', fontSize: '0.9em' }}>
                   {Object.entries(simulatedDist)
-                    .filter(([code, pct]) => pct > 0.1) // Only show relevant items (>0.1%)
-                    .sort((a, b) => b[1] - a[1])        // Sort by percentage Descending
+                    .filter(([code, pct]) => pct > 0.1) 
+                    .sort((a, b) => b[1] - a[1])        
                     .map(([code, pct]) => {
                       const name = LAND_USE_NAMES[code] || code;
                       const isTarget = String(code) === String(selectedTool);
