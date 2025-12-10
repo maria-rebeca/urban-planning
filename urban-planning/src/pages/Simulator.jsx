@@ -152,8 +152,7 @@ function Simulator() {
       setSimulatedDist(normalizedSmartPayload);
 
       console.log("🚀 Running Delta Simulation...");
-      
-  
+
       const [baselineResponse, newResponse] = await Promise.all([
         axios.post('http://localhost:5000/api/predict-temperature', { distribution: normalizedCurrentPayload }),
         axios.post('http://localhost:5000/api/predict-temperature', { distribution: normalizedSmartPayload })
@@ -163,10 +162,10 @@ function Simulator() {
         const baselineTemp = baselineResponse.data.predicted_temp;
         const newTemp = newResponse.data.predicted_temp;
 
-    
+
         const delta = newTemp - baselineTemp;
         
-        console.log(`Baseline: ${baselineTemp.toFixed(2)} | 📈 New: ${newTemp.toFixed(2)} | Delta: ${delta.toFixed(4)}`);
+        console.log(`📉 Baseline: ${baselineTemp.toFixed(2)} | 📈 New: ${newTemp.toFixed(2)} | Delta: ${delta.toFixed(4)}`);
 
   
         const realTemp = markerStats.target_temp || markerStats.mean_temp || 0;
