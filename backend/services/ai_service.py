@@ -32,15 +32,41 @@ class AIService:
         except Exception as e:
             print(f"❌ Error loading AI model: {e}")
 
+    def predict_pollution(self, user_land_use):
+        if not self.expected_columns:
+            raise Exception("Model columns not loaded.")
+
+        pollution_impact = {
+            '12100': 1.8,    
+            '11100': 0.8,    
+            '12210': 0.7,    
+            '12220': 0.5,    
+            '12400': 0.6,    
+            '31000': -1.2,   
+            '14100': -0.5,   
+            '50000': -0.1,   
+            '13400': 0.2,    
+        }
+        
+        base_pollution_index = 30.0 
+        total_pollution_change = 0.0
+
+        for col_name, percent in user_land_use.items():
+            key = col_name.replace('pct_', '') 
+            impact = pollution_impact.get(key, 0.0)
+            
+            total_pollution_change += percent * impact
+        
+        final_pollution = base_pollution_index + (total_pollution_change / 100)
+        
+        return max(1.0, final_pollution)
+
     def predict_temperature(self, user_land_use):
         if not self.model:
             raise Exception("Model is not loaded.")
 
-
         input_data = {col: 0.0 for col in self.expected_columns}
-        for code, percent in user_land_use.items():
-            clean_code = str(code).replace('pct_', '')
-            col_name = f"pct_{clean_code}"
+        for col_name, percent in user_land_use.items():
             if col_name in input_data:
                 input_data[col_name] = float(percent)
         

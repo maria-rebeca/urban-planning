@@ -1,5 +1,4 @@
 from flask import Blueprint, jsonify, request
-# Import the specific functions we need from our service
 from services.gee_service import get_lst_mapid, get_landuse_mapid, calculate_stats
 from config import Config
 from services.ai_service import ai_service
@@ -41,20 +40,27 @@ def route_get_stats():
 @api_bp.route('/predict-temperature', methods=['POST'])
 def route_predict():
     try:
-        # Expected format: { "distribution": { "11100": 50, "14100": 50 } }
         data = request.get_json()
         distribution = data.get('distribution', {})
 
         if not distribution:
             return jsonify({"error": "No distribution provided"}), 400
 
-        predicted_temp = ai_service.predict_temperature(distribution)
+        # Mapează distribuția în formatul 'pct_CODE' de care are nevoie ai_service
+        mapped_distribution = {f"pct_{k}": v for k, v in distribution.items()}
+
+        # 1. Predicția de Temperatură
+        predicted_temp = ai_service.predict_temperature(mapped_distribution)
+        
+        # 2. Predicția de Poluare
+        predicted_pollution = ai_service.predict_pollution(mapped_distribution)
 
         return jsonify({
             "status": "success",
-            "predicted_temp": predicted_temp
+            "predicted_temp": predicted_temp,
+            "predicted_pollution": predicted_pollution  # NOU: Inclusă Poluarea
         })
 
     except Exception as e:
         print(f"Prediction Error: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
