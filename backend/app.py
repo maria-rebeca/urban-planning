@@ -1,7 +1,7 @@
 # app.py
 from flask import Flask
 from flask_cors import CORS
-from gee_service import initialize_gee
+from services.gee_service import initialize_gee
 from map_routes import api_bp
 
 app = Flask(__name__)
