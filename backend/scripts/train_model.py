@@ -8,7 +8,7 @@ import joblib
 
 # 1. Load the dataset
 try:
-    data = pd.read_csv('final_training_data.csv')
+    data = pd.read_csv('C:/ROSPIN/urban-planning/backend/scripts/final_training_data.csv')
     print("CSV file loaded successfully.")
 except FileNotFoundError:
     print("Error: 'final_training_data.csv' not found. Make sure the file is in the same directory.")
@@ -31,15 +31,29 @@ print(f"Testing data shape: {X_test.shape}")
 # 4. Initialize and Train the Model
 # A RandomForestRegressor is a good starting point for many tabular data problems.
 #model = RandomForestRegressor(n_estimators=100, random_state=42, oob_score=True)
-model = GradientBoostingRegressor(n_estimators=200, learning_rate=0.01, max_depth=5, random_state=42)
+Gradient_model = GradientBoostingRegressor(random_state=42)
+
+param_grid = {
+    'n_estimators': [100, 200, 300],  #How many trees in the forest
+    'learning_rate': [0.01, 0.05, 0.1], # How much each tree contributes to the overall prediction
+    'max_depth': [3, 4, 5],  # Maximum depth of each tree
+    'subsample': [0.8, 1.0]  # Fraction of samples to be used for fitting the individual base learners
+}
+
+print("\nStarting automated tuning (Grid Search)...")
+
+grid_search = GridSearchCV(estimator=Gradient_model, param_grid=param_grid, 
+                           cv=5, n_jobs=-1, verbose=1, scoring='neg_mean_squared_error')
 
 print("\nTraining the model...")
-model.fit(X_train, y_train)
+grid_search.fit(X_train, y_train)
 print("Model training complete.")
 
 # 5. Evaluate the Model
 # Make predictions on the test set
-y_pred = model.predict(X_test)
+Best_model = grid_search.best_estimator_
+print(f"\nBest Hyperparameters: {grid_search.best_params_}")
+y_pred = Best_model.predict(X_test)
 
 # Calculate the Mean Squared Error
 mse = mean_squared_error(y_test, y_pred)
