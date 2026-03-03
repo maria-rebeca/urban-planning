@@ -55,46 +55,65 @@ function Simulator() {
 
   const currentCity = cityData[selectedCity];
 
-  // --- SMART PRIORITY REPLACEMENT (LOGICĂ FINALĂ) ---
-  const calculateSmartDistribution = (currentDist, targetCode, percentageToAdd, victimsOrder) => {
-    let newDist = { ...currentDist };
+// --- SMART PRIORITY REPLACEMENT 
+  const calculateSmartDistribution = (currentDist, targetCode, percentageToAdd, victimsOrder) => {
+    let newDist = { ...currentDist };
+    let needed = parseFloat(percentageToAdd);
+    const targetCodeStr = String(targetCode);
 
-    let needed = parseFloat(percentageToAdd);
+   
+    const STRICTLY_PROTECTED = ['50000', targetCodeStr]; 
 
-    // Coduri strict protejate: Apa (50000) și categoria pe care o adăugăm (targetCode)
-    const STRICTLY_PROTECTED = ['50000', String(targetCode)]; 
+    for (const victimCode of victimsOrder) {
+        const victimCodeStr = String(victimCode);
+        
+        if (needed <= 0) break;
+        if (STRICTLY_PROTECTED.includes(victimCodeStr)) continue;
 
-    // Folosim DOAR ordinea dată de utilizator (victimsOrder).
-    const userPriorityOrder = victimsOrder;
+        if (newDist[victimCodeStr] > 0) {
+            const available = newDist[victimCodeStr];
+            if (available >= needed) {
+                
+                newDist[victimCodeStr] = available - needed;
+                needed = 0;
+            } else {
+                
+                newDist[victimCodeStr] = 0;
+                needed -= available;
+            }
+        }
+    }
 
-    // Parcurgem lista de priorități (victimsOrder)
-    for (const victimCode of userPriorityOrder) {
-        const victimCodeStr = String(victimCode);
-        
-        if (needed <= 0) break;
-        
-        if (STRICTLY_PROTECTED.includes(victimCodeStr)) {
-            continue; 
-        }
 
-        if (newDist[victimCodeStr] > 0) {
-            const available = newDist[victimCodeStr];
-            if (available >= needed) {
-                newDist[victimCodeStr] = available - needed;
-                needed = 0;
-            } else {
-                newDist[victimCodeStr] = 0;
-                needed -= available;
-            }
-        }
-    }
-    
-    const actualAmountAdded = parseFloat(percentageToAdd) - needed;
-    newDist[targetCode] = (newDist[targetCode] || 0) + actualAmountAdded;
+    if (needed > 0) {
+        // Calculate total land available in non-protected categories
+        const totalFallbackAvailable = Object.keys(newDist)
+            .filter(k => !STRICTLY_PROTECTED.includes(k)) // Don't touch Water or Target
+            .reduce((sum, k) => sum + (newDist[k] || 0), 0);
 
-    return newDist;
-};
+        if (totalFallbackAvailable > 0) {
+            const amountToTake = Math.min(needed, totalFallbackAvailable);
+            
+        
+            const ratio = (totalFallbackAvailable - amountToTake) / totalFallbackAvailable;
 
+           
+            Object.keys(newDist).forEach(k => {
+                if (!STRICTLY_PROTECTED.includes(k)) {
+                    newDist[k] = newDist[k] * ratio;
+                }
+            });
+
+        
+            needed -= amountToTake;
+        }
+    }
+
+    const actualAmountAdded = parseFloat(percentageToAdd) - needed;
+    newDist[targetCodeStr] = (newDist[targetCodeStr] || 0) + actualAmountAdded;
+
+    return newDist;
+  };
   // --- SIMULATION RUNNER ---
   const runSimulation = async () => {
     if (!markerStats || !markerStats.land_use_dist) {
@@ -174,7 +193,6 @@ function Simulator() {
     } catch (error) {
       console.error("Simulation failed:", error);
       
-      // BLOC CATCH ÎMBUNĂTĂȚIT: Vă ajută să depanați eroarea reală care aruncă 'Cannot read properties of undefined'
       if (error.response) {
         const errorDetails = error.response.data || error.response.statusText;
         alert("Simulation Failed! Server returned status: " + error.response.status + ". Details: " + JSON.stringify(errorDetails));
@@ -310,32 +328,50 @@ function Simulator() {
           />
         </div>
 
-        {/* NOU: Control pentru alegerea priorității de înlocuire */}
-        <div className="control-group">
-          <label htmlFor="victim-select">4. Priority Replacement (Victims):</label>
-          <small style={{ display: 'block', marginBottom: '5px', color: '#666' }}>
-            Selectează tipurile de teren care vor fi **înlocuite primele** pentru a face loc noii construcții. (Selectează mai multe cu Ctrl/Cmd).
-          </small>
-          
-          <select 
-            id="victim-select" 
-            multiple={true} 
-            value={replacementVictims} 
-            onChange={(e) => {
-              const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-              setReplacementVictims(selectedOptions);
-            }}
-            style={{ minHeight: '150px' }}
-          >
-            {Object.entries(LAND_USE_NAMES)
-              .filter(([code]) => String(code) !== String(selectedTool)) // Nu poti inlocui cu ce adaugi
-              .map(([code, name]) => (
-                <option key={code} value={code}>
-                  {name} ({code})
-                </option>
-            ))}
-          </select>
-        </div>
+       <div className="control-group">
+          <label htmlFor="victim-select">4. Priority Replacement (Victims):</label>
+          <small style={{ display: 'block', marginBottom: '5px', color: '#666' }}>
+            Select land types to <strong>replace first</strong>. (Only types present in this area are shown).
+          </small>
+          
+          <select 
+            id="victim-select" 
+            multiple={true} 
+            value={replacementVictims} 
+            onChange={(e) => {
+              const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+              setReplacementVictims(selectedOptions);
+            }}
+            style={{ minHeight: '150px' }}
+          >
+            {Object.entries(LAND_USE_NAMES)
+              .filter(([code]) => {
+                //Cannot replace the tool we are adding 
+                if (String(code) === String(selectedTool)) return false;
+
+                //Must exist in the selected area 
+                if (!markerStats || !markerStats.land_use_dist) return false;
+
+            
+                const exists = markerStats.land_use_dist.find(item => String(item.Code) === String(code));
+                
+    
+                if (exists) {
+                   const nameKey = Object.keys(exists).find(k => k !== 'Code');
+                   const value = nameKey ? exists[nameKey] : 0;
+                   return value > 0;
+                }
+                
+                return false;
+              })
+              .map(([code, name]) => (
+                <option key={code} value={code}>
+                  {name} ({code})
+                </option>
+            ))}
+          </select>
+          {(!markerStats) && <span style={{color:'red', fontSize:'0.8em'}}>* Select a map point to populate this list.</span>}
+        </div>
 
         <div className="control-group">
             <MapMarkerTool 
@@ -374,18 +410,6 @@ function Simulator() {
               {prediction > markerStats.mean_temp ? "▲" : "▼"} {Math.abs(prediction - markerStats.mean_temp).toFixed(1)}°C change
             </div>
                 
-            {/* Poluarea (NOU) */}
-            {predictedPollution !== null && (
-                <div style={{ marginTop: '15px', borderTop: '1px solid #ccc', paddingTop: '10px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Predicted Pollution Index:</span>
-                        <span style={{ fontWeight: 'bold', color: predictedPollution > 30 ? '#D32F2F' : '#388E3C' }}>{predictedPollution.toFixed(2)}</span>
-                    </div>
-                    <div style={{ fontSize: '0.8em', color: '#666', marginTop: '5px', fontStyle: 'italic' }}>
-                        *Aproximare bazată pe modelul de utilizare a terenului. (Indice de referință 30)
-                    </div>
-                </div>
-            )}
             
             {simulatedDist && (
               <div style={{ marginTop: '15px', borderTop: '1px solid #ccc', paddingTop: '10px' }}>
