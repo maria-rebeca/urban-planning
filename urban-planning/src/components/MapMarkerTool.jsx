@@ -9,48 +9,50 @@ const MapMarkerTool = ({ isActive, onToggle, markerData, onClearMarker, isLoadin
         <FaMapPin 
           className={`tool-icon ${isActive ? 'active' : ''}`} 
           onClick={onToggle} 
-          title="Activează/Dezactivează Pinul" 
+          title="Toggle Pin" 
         />
-        <h3 className="tool-title">Analiză Punctuală</h3>
+        <h3 className="tool-title">Point Analysis</h3>
       </div>
       <p className="tool-description">
-        {isActive
-          ? 'Pin activat. Fă clic pe hartă pentru a plasa un pin și a vedea statisticile din jur.'
-          : 'Fă clic pe iconiță pentru a activa pinul și a analiza o zonă.'
-        }
+        {isActive ? 'Click map to place pin.' : 'Click icon to activate.'}
       </p>
 
-      {/* Afișarea Datelor */}
-      {isLoading && (
-        <div className="marker-stats loading">
-          <FaSpinner className="spinner" /> Se încarcă datele...
-        </div>
-      )}
+      {isLoading && <div className="marker-stats loading"><FaSpinner className="spinner"/> Loading...</div>}
 
       {!isLoading && markerData && (
         <div className="marker-stats">
-          <h4>📍 Statistici Locație (Raza 1km)</h4>
-          <p>🌡️ **Temperatura Medie (LST):** {markerData.mean_temp.toFixed(2)} °C</p>
-          <h5>Procentaj Utilizare Teren:</h5>
+          <h4>📍 Stats (1km Radius)</h4>
+          <p>🌡️ **LST Temp:** {markerData.mean_temp.toFixed(2)} °C</p>
+          
+          <h5>Land Use Distribution:</h5>
           <ul>
-            {markerData.land_use_dist.map((item, index) => {
-              const [name, percentage] = Object.entries(item)[0];
-              return (
-                <li key={index}>
-                  **{name}:** {percentage}%
-                </li>
-              );
-            })}
+            {markerData.land_use_dist && [...markerData.land_use_dist]
+              .sort((a, b) => {
+                const nameA = Object.keys(a).find(k => k !== 'Code');
+                const valA = a[nameA];
+                
+                const nameB = Object.keys(b).find(k => k !== 'Code');
+                const valB = b[nameB];
+                
+                return valB - valA;
+              })
+              .map((item, index) => {
+                const name = Object.keys(item).find(k => k !== 'Code');
+                const value = item[name];
+                
+                if (!name) return null; 
+                return (
+                  <li key={index}>
+                    <strong>{name}:</strong> {Number(value).toFixed(1)}%
+                  </li>
+                );
+              })}
           </ul>
-          <button onClick={onClearMarker} className="clear-btn">Șterge Pinul</button>
+          <button onClick={onClearMarker} className="clear-btn">Clear Pin</button>
         </div>
       )}
 
-      {!isLoading && isActive && markerData === null && (
-        <div className="marker-stats empty">
-          Alege o locație pe hartă.
-        </div>
-      )}
+      {!isLoading && isActive && !markerData && <div className="marker-stats empty">Select a location.</div>}
     </div>
   );
 };
