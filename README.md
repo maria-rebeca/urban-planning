@@ -1,18 +1,42 @@
-# React + Vite
+# 🌍 Urban Heat Simulator: Bucharest Case Study
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![Python](https://img.shields.io/badge/Python-3.14-blue)
+![Flask](https://img.shields.io/badge/Flask-Backend-green)
+![React](https://img.shields.io/badge/React-Frontend-61DAFB)
+![Machine Learning](https://img.shields.io/badge/ML-Scikit_Learn-orange)
+![Google Earth Engine](https://img.shields.io/badge/Geospatial-Earth_Engine-purple)
 
-Currently, two official plugins are available:
+## 📌 Overview
+The Urban Heat Simulator is a full-stack web application designed to help visualize and predict the Urban Heat Island (UHI) effect in Bucharest. 
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Instead of just looking at static temperature maps, this tool allows users to run interactive "what-if" scenarios. By changing the land-use categories of a specific area (e.g., converting roads to green spaces), the application uses a machine learning model to predict how the local temperature will change.
 
-## React Compiler
+## 📸 Application Interface
+![Parameters panel](docs/assets/parameters_panel.png)
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+![map](docs/assets/map.png)
 
-Note: This will impact Vite dev & build performances.
+## 🚀 How It Works (Key Features)
+* **Interactive Scenario Planning:** Users can select a region and dynamically swap land-use allocations to see the predicted temperature impact.
+* **Predictive ML Model:** The backend is powered by a Ridge Regression model trained on 774 data points from Bucharest, correlating 24 different land-use categories (from the Copernicus Urban Atlas) with surface temperatures.
+* **Smart Priority Algorithm:** A custom logic engine that ensures user simulations respect real-world spatial constraints when replacing one land-use type with another.
+* **Live Satellite Data:** Integrates with the Google Earth Engine (GEE) Python API to fetch historical Land Surface Temperature (LST) data.
 
-## Expanding the ESLint configuration
+## 💻 Tech Stack & Architecture
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+* **Frontend:** React.js (handles the interactive map, user inputs, and state management).
+* **Backend:** Python / Flask (serves API endpoints and processes the simulation logic).
+* **Machine Learning:** Scikit-Learn (Ridge Regression, Pandas, NumPy).
+* **Geospatial Data:** Google Earth Engine API & Copernicus Urban Atlas.
+
+## 🛠️ Local Setup & Installation
+
+### Prerequisites
+* Node.js and npm
+* Python 3.x
+* A Google Earth Engine account / Service Account Key
+
+### 1. Clone the Repository
+```bash
+git clone [https://github.com/yourusername/urban-planning.git](https://github.com/yourusername/urban-planning.git)
+cd urban-planning
